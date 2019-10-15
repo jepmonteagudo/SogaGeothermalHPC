@@ -1,5 +1,5 @@
 #pragma once
-#include "heatequ.h"
+#include "heateq.h"
 #include "boundary.h"
 #include "righthandside.h"
 #include <deal.II/base/quadrature_lib.h>

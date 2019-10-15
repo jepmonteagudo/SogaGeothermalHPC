@@ -1,5 +1,4 @@
-#include "heatequ.h"
-
+#include "heateq.h"
 namespace Geothermal
 {
 int main()
@@ -67,4 +66,4 @@ int main()
     //     return 1;
     //   }
 }
-}
+} // namespace Geothermal
