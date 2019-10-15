@@ -1,8 +1,8 @@
+#pragma once
 #include "righthandside.h"
 
 namespace Geothermal
 {
-
 
 template <int dim>
 double RightHandSide<dim>::value(const Point<dim> &p,

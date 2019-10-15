@@ -3,7 +3,16 @@
         {
             "name": "Linux",
             "includePath": [
+<<<<<<< HEAD
                 "${workspaceFolder}/**"
+=======
+                "${workspaceFolder}/**",
+                "/usr/lib/petscdir/3.7.7/x86_64-linux-gnu-real/include/petsc/mpiuni",
+                "/usr/lib/petscdir/3.7.7/x86_64-linux-gnu-real/include",
+                "/usr/include/trilinos",
+                "/home/shyaan/SogaGeothermalHPC/include",
+                "/usr/include/deal.II"
+>>>>>>> 3ad8840706ce6f23db3490460bba867f315123f3
             ],
             "defines": [],
             "compilerPath": "/usr/bin/clang",
