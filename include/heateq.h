@@ -1,4 +1,4 @@
-#pragma once
+
 #include <deal.II/base/utilities.h>
 
 #include <deal.II/lac/vector.h>
@@ -14,8 +14,6 @@
 #include <deal.II/numerics/vector_tools.h>
 #include <deal.II/numerics/matrix_tools.h>
 
-namespace Geothermal
-{
 using namespace dealii;
 
 template <int dim>
@@ -50,4 +48,3 @@ private:
 
     const double theta;
 };
-} // namespace Geothermal

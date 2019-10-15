@@ -22,12 +22,12 @@ SET(TARGET "SogaGeothermalHPC")
 
 # Usually, you will not need to modify anything beyond this point...
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8.8)
-
 # Set include directories
 include_directories (external)
 include_directories (include)
 include_directories (src)
+
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8.8)
 
 FIND_PACKAGE(deal.II 8.5.0 QUIET
   HINTS ${deal.II_DIR} ${DEAL_II_DIR} ../ ../../ $ENV{DEAL_II_DIR}
