@@ -1,4 +1,4 @@
-#pragma once
+
 #include <deal.II/base/function.h>
 #include "boundary.h"
 
@@ -6,7 +6,7 @@ namespace Geothermal
 {
 
 template <int dim>
-double BoundaryValues<dim>::value(const Point<dim> &p,
+double BoundaryValues<dim>::value(const dealii::Point<dim> &p,
                                   const unsigned int /*component*/) const
 {
   // (void)component;

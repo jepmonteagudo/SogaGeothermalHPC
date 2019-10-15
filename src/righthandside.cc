@@ -1,8 +1,6 @@
-#pragma once
+
 #include "righthandside.h"
 
-namespace Geothermal
-{
 
 template <int dim>
 double RightHandSide<dim>::value(const Point<dim> &p,
@@ -15,5 +13,3 @@ double RightHandSide<dim>::value(const Point<dim> &p,
     const double time = this->get_time(); //get time
     return 0;
 }
-
-} // namespace Geothermal

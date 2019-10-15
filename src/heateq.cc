@@ -1,4 +1,4 @@
-#pragma once
+
 #include "heateq.h"
 #include "boundary.h"
 #include "righthandside.h"
@@ -25,9 +25,6 @@
 
 // #include <deal.II/numerics/error_estimator.h>
 // #include <deal.II/numerics/solution_transfer.h>
-
-namespace Geothermal
-{
 
 template <int dim>
 HeatEquation<dim>::HeatEquation() // initialization
@@ -206,4 +203,3 @@ void HeatEquation<dim>::run()
         old_solution = solution;
     }
 }
-} // namespace Geothermal
