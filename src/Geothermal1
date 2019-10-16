@@ -45,7 +45,6 @@
 
 #include <map>
 
-
 namespace Geothermal
 {
 using namespace dealii;

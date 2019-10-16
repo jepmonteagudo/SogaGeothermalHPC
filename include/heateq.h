@@ -1,4 +1,4 @@
-
+#pragma once
 #include <deal.II/base/utilities.h>
 
 #include <deal.II/lac/vector.h>
@@ -7,14 +7,20 @@
 #include <deal.II/grid/tria.h>
 
 #include <deal.II/dofs/dof_handler.h>
-// #include <deal.II/dofs/dof_accessor.h>
-// #include <deal.II/dofs/dof_tools.h>
+#include <deal.II/dofs/dof_accessor.h>
+#include <deal.II/dofs/dof_tools.h>
 
 #include <deal.II/fe/fe_q.h>
 #include <deal.II/numerics/vector_tools.h>
 #include <deal.II/numerics/matrix_tools.h>
+#include <iostream>
+#include <fstream>
 
-using namespace dealii;
+class test
+{
+public:
+    void func();
+};
 
 template <int dim>
 class HeatEquation
@@ -29,18 +35,18 @@ private:
     void solve_time_step();
     void output_results() const;
 
-    Triangulation<dim> triangulation; //grid
-    FE_Q<dim> fe;                     //element
-    DoFHandler<dim> dof_handler;      //grid<->eleemnt
+    dealii::Triangulation<dim> triangulation; //grid
+    dealii::FE_Q<dim> fe;                     //element
+    dealii::DoFHandler<dim> dof_handler;      //grid<->eleemnt
 
-    SparsityPattern sparsity_pattern;    // sparsity
-    SparseMatrix<double> mass_matrix;    // M
-    SparseMatrix<double> laplace_matrix; //A
-    SparseMatrix<double> system_matrix;  //M + k*theta*A
+    dealii::SparsityPattern sparsity_pattern;    // sparsity
+    dealii::SparseMatrix<double> mass_matrix;    // M
+    dealii::SparseMatrix<double> laplace_matrix; //A
+    dealii::SparseMatrix<double> system_matrix;  //M + k*theta*A
 
-    Vector<double> solution;     // solution at n
-    Vector<double> old_solution; //solution at n-1
-    Vector<double> system_rhs;   //rhs
+    dealii::Vector<double> solution;     // solution at n
+    dealii::Vector<double> old_solution; //solution at n-1
+    dealii::Vector<double> system_rhs;   //rhs
 
     double time;
     double time_step;
@@ -48,3 +54,5 @@ private:
 
     const double theta;
 };
+
+#include <heateq.tcc>

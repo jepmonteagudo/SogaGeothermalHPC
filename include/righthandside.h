@@ -1,4 +1,8 @@
+
+#pragma once
 #include <deal.II/base/function.h>
+#include <iostream>
+#include <fstream>
 
 template <int dim>
 class RightHandSide : public dealii::Function<dim>
@@ -15,3 +19,5 @@ public:
 private:
     const double period;
 };
+
+#include <righthandside.tcc>
