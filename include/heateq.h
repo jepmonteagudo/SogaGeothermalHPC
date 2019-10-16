@@ -16,12 +16,6 @@
 #include <iostream>
 #include <fstream>
 
-class test
-{
-public:
-    void func();
-};
-
 template <int dim>
 class HeatEquation
 {

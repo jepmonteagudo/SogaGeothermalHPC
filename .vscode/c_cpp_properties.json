@@ -10,6 +10,7 @@
                 "/home/shyaan/SogaGeothermalHPC/include",
                 "/usr/include/deal.II",
                 "/usr/include",
+                "/usr/include",
                 "/usr/include"
             ],
             "defines": [],

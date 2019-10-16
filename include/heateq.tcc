@@ -19,10 +19,6 @@
 
 #include <deal.II/numerics/data_out.h>
 
-void test::func()
-{
-    std::cout << "good" << std::endl;
-}
 
 template <int dim>
 HeatEquation<dim>::HeatEquation() // initialization
