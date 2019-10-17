@@ -32,6 +32,7 @@ public:
 private:
     void grid_input();
     void setup_system();
+    void assemble_system();
     void solve_time_step();
     void output_results() const;
 
