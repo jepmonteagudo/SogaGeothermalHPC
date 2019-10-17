@@ -86,6 +86,57 @@ void HeatEquation<dim>::setup_system()
 }
 
 template <int dim>
+void HeatEquation<dim>::assemble_system()
+{
+    dealii::Vector<double> tmp;           // this vector is for
+    dealii::Vector<double> forcing_terms; // this vector is for forcing_terms
+
+    tmp.reinit(solution.size());           //initialize tmp
+    forcing_terms.reinit(solution.size()); // initialize forcing_terms
+    
+    mass_matrix.vmult(system_rhs, old_solution); // matrix multiplication system_rhs = mass_matrix*old_solution
+
+    laplace_matrix.vmult(tmp, old_solution);       // tmp = laplace_matrix*old_solution
+    system_rhs.add(-(1 - theta) * time_step, tmp); // system_rhs = system_rhs -(1 - theta) * time_step*tmp  注意，这里system_rhs是一个vector，所以add是将两个元素相乘了
+
+    RightHandSide<dim> rhs_function;
+    rhs_function.set_time(time);
+    dealii::VectorTools::create_right_hand_side(dof_handler,
+                                                    dealii::QGauss<dim>(fe.degree + 1),
+                                                    rhs_function,
+                                                    tmp);
+    forcing_terms = tmp;
+    forcing_terms *= time_step * theta;
+
+    rhs_function.set_time(time - time_step);
+    dealii::VectorTools::create_right_hand_side(dof_handler,
+                                                    dealii::QGauss<dim>(fe.degree + 1),
+                                                    rhs_function,
+                                                    tmp);
+
+    forcing_terms.add(time_step * (1 - theta), tmp); // 形成forcing term = f(x,n-1)*(1-theta) + f(x,n)*theta
+
+    system_rhs += forcing_terms; // system_rhs = system_rhs + forcing_term : sys_Old*U_Old + f(x,n-1)*(1-theta) + f(x,n)*theta
+
+    system_matrix.copy_from(mass_matrix);
+    system_matrix.add(theta * time_step, laplace_matrix); //sys = M + k*theta*A
+
+    BoundaryValues<dim> boundary_values_function; // creat boundary value object
+    boundary_values_function.set_time(time);      //set the proper time
+
+    std::map<dealii::types::global_dof_index, double> boundary_values;
+    dealii::VectorTools::interpolate_boundary_values(dof_handler, //evaluate value by interpolation
+                                                         1,
+                                                         boundary_values_function,
+                                                         boundary_values);
+
+    dealii::MatrixTools::apply_boundary_values(boundary_values,
+                                                   system_matrix,
+                                                   solution,
+                                                   system_rhs);
+}
+
+template <int dim>
 void HeatEquation<dim>::solve_time_step()
 {
     dealii::SolverControl solver_control(1000, 1e-8 * system_rhs.l2_norm()); // setting for cg
@@ -126,12 +177,6 @@ void HeatEquation<dim>::run()
     grid_input();
     setup_system();
 
-    dealii::Vector<double> tmp;           // this vector is for
-    dealii::Vector<double> forcing_terms; // this vector is for forcing_terms
-
-    tmp.reinit(solution.size());           //initialize tmp
-    forcing_terms.reinit(solution.size()); // initialize forcing_terms
-
     dealii::VectorTools::interpolate(dof_handler,
                                      dealii::ZeroFunction<dim>(),
                                      old_solution); // interpolate the old solution based on dof_handler, here using interpolation because we refine the global
@@ -147,46 +192,7 @@ void HeatEquation<dim>::run()
         std::cout << "Time step " << timestep_number << " at t=" << time
                   << std::endl;
 
-        mass_matrix.vmult(system_rhs, old_solution); // matrix multiplication system_rhs = mass_matrix*old_solution
-
-        laplace_matrix.vmult(tmp, old_solution);       // tmp = laplace_matrix*old_solution
-        system_rhs.add(-(1 - theta) * time_step, tmp); // system_rhs = system_rhs -(1 - theta) * time_step*tmp  注意，这里system_rhs是一个vector，所以add是将两个元素相乘了
-
-        RightHandSide<dim> rhs_function;
-        rhs_function.set_time(time);
-        dealii::VectorTools::create_right_hand_side(dof_handler,
-                                                    dealii::QGauss<dim>(fe.degree + 1),
-                                                    rhs_function,
-                                                    tmp);
-        forcing_terms = tmp;
-        forcing_terms *= time_step * theta;
-
-        rhs_function.set_time(time - time_step);
-        dealii::VectorTools::create_right_hand_side(dof_handler,
-                                                    dealii::QGauss<dim>(fe.degree + 1),
-                                                    rhs_function,
-                                                    tmp);
-
-        forcing_terms.add(time_step * (1 - theta), tmp); // 形成forcing term = f(x,n-1)*(1-theta) + f(x,n)*theta
-
-        system_rhs += forcing_terms; // system_rhs = system_rhs + forcing_term : sys_Old*U_Old + f(x,n-1)*(1-theta) + f(x,n)*theta
-
-        system_matrix.copy_from(mass_matrix);
-        system_matrix.add(theta * time_step, laplace_matrix); //sys = M + k*theta*A
-
-        BoundaryValues<dim> boundary_values_function; // creat boundary value object
-        boundary_values_function.set_time(time);      //set the proper time
-
-        std::map<dealii::types::global_dof_index, double> boundary_values;
-        dealii::VectorTools::interpolate_boundary_values(dof_handler, //evaluate value by interpolation
-                                                         1,
-                                                         boundary_values_function,
-                                                         boundary_values);
-
-        dealii::MatrixTools::apply_boundary_values(boundary_values,
-                                                   system_matrix,
-                                                   solution,
-                                                   system_rhs);
+        assemble_system();
 
         solve_time_step();
 
