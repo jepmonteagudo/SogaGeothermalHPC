@@ -1,0 +1,10 @@
+/home/shyaan/SogaGeothermalHPC/CMakeFiles/rebuild_cache.dir
+/home/shyaan/SogaGeothermalHPC/CMakeFiles/edit_cache.dir
+/home/shyaan/SogaGeothermalHPC/CMakeFiles/info.dir
+/home/shyaan/SogaGeothermalHPC/CMakeFiles/strip_comments.dir
+/home/shyaan/SogaGeothermalHPC/CMakeFiles/run.dir
+/home/shyaan/SogaGeothermalHPC/CMakeFiles/src/Geothermal.dir
+/home/shyaan/SogaGeothermalHPC/CMakeFiles/debug.dir
+/home/shyaan/SogaGeothermalHPC/CMakeFiles/release.dir
+/home/shyaan/SogaGeothermalHPC/CMakeFiles/runclean.dir
+/home/shyaan/SogaGeothermalHPC/CMakeFiles/distclean.dir
