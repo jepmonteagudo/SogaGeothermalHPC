@@ -15,6 +15,8 @@ deal.II/base/function.h
 -
 deal.II/base/logstream.h
 -
+deal.II/lac/matrix_out.h
+-
 deal.II/lac/vector.h
 -
 deal.II/lac/full_matrix.h

@@ -53,7 +53,7 @@ CMAKE_BINARY_DIR = /home/shyaan/SogaGeothermalHPC
 # Include the progress variables for this target.
 include CMakeFiles/run.dir/progress.make
 
-CMakeFiles/run: src/Geothermal
+CMakeFiles/run: src/Geothermal.cc
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/shyaan/SogaGeothermalHPC/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Run src/Geothermal with Debug configuration"
 	src/Geothermal
 

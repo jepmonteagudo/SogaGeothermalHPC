@@ -2,6 +2,7 @@
 #include <deal.II/base/quadrature_lib.h>
 #include <deal.II/base/function.h>
 #include <deal.II/base/logstream.h>
+#include <deal.II/lac/matrix_out.h>
 
 #include <deal.II/lac/vector.h>
 #include <deal.II/lac/full_matrix.h>
@@ -62,7 +63,7 @@ private:
   FE_Q<dim> fe;                     //element
   DoFHandler<dim> dof_handler;      //grid<->eleemnt
 
-  ConstraintMatrix constraints; // hanging node
+  // ConstraintMatrix constraints; // hanging node
 
   SparsityPattern sparsity_pattern;    // sparsity
   SparseMatrix<double> mass_matrix;    // M
@@ -97,6 +98,16 @@ private:
 };
 
 template <int dim>
+class InitialValues : public Function<dim>
+{
+  public: 
+    virtual double value(const Point<dim>& p,
+                        const unsigned int component =0) const;
+};
+
+
+
+template <int dim>
 class BoundaryValues : public Function<dim>
 {
 public:
@@ -123,7 +134,19 @@ double BoundaryValues<dim>::value(const Point<dim> &p,
   // (void)component;
   // Assert(component == 0, ExcIndexRange(component, 0, 1));
   const double time = this->get_time();
-  return 10. * sin(time * 3.1415926); // boundary value is set to zero in this case
+  // return 10. * sin(time * 3.1415926); // boundary value is set to zero in this case
+  return 1;
+}
+
+template <int dim>
+double InitialValues<dim>::value(const Point<dim> &p,
+                                  const unsigned int /*component*/) const
+{
+  // (void)component;
+  // Assert(component == 0, ExcIndexRange(component, 0, 1));
+  const double time = this->get_time();
+  // return 10. * sin(time * 3.1415926); // boundary value is set to zero in this case
+  return 1;
 }
 
 template <int dim>
@@ -134,7 +157,7 @@ HeatEquation<dim>::HeatEquation() // initialization
       time_step(1. / 20), //a time step constant at 1/500 (remember that one period of the source on the right hand side was set to 0.2 above,
                           //so we resolve each period with 100 time steps)
       timestep_number(0),
-      theta(0.5)
+      theta(1)
 {
 }
 
@@ -182,7 +205,7 @@ void HeatEquation<dim>::grid_input()
 {
   GridIn<dim> gridin;
   gridin.attach_triangulation(triangulation);
-  std::ifstream f("mesh.msh");
+  std::ifstream f("mesh1.msh");
   gridin.read_msh(f);
 
   print_mesh_info(triangulation, "grid-1.eps");
@@ -202,16 +225,14 @@ void HeatEquation<dim>::setup_system()
             << std::endl
             << std::endl;
 
-  constraints.clear();
-  DoFTools::make_hanging_node_constraints(dof_handler,
-                                          constraints); // setting the hanging node
-  constraints.close();
+  // constraints.clear();
+  // DoFTools::make_hanging_node_constraints(dof_handler,
+  //                                         constraints); // setting the hanging node
+  // constraints.close();
 
   DynamicSparsityPattern dsp(dof_handler.n_dofs()); // sparsity
   DoFTools::make_sparsity_pattern(dof_handler,
-                                  dsp,
-                                  constraints,
-                                  /*keep_constrained_dofs = */ true);
+                                  dsp);
   sparsity_pattern.copy_from(dsp);
 
   mass_matrix.reinit(sparsity_pattern);    // initialize M using given sparsity parttern
@@ -247,7 +268,7 @@ void HeatEquation<dim>::solve_time_step()
   cg.solve(system_matrix, solution, system_rhs,
            preconditioner); // solve eq
 
-  constraints.distribute(solution); // make sure if the value is consistent at the constraint point
+  // constraints.distribute(solution); // make sure if the value is consistent at the constraint point
 
   std::cout << "     " << solver_control.last_step()
             << " CG iterations." << std::endl;
@@ -281,11 +302,28 @@ void HeatEquation<dim>::run()
   Vector<double> tmp;           // this vector is for
   Vector<double> forcing_terms; // this vector is for forcing_terms
 
+
+
+  //---------------for old T--------------------------------------------------//
+  const unsigned int dofs_per_cell = fe.dofs_per_cell;
+  QGauss<dim> quadrature_formula(fe.degree + 1);
+  const unsigned int n_q_points = quadrature_formula.size();
+  typename DoFHandler<dim>::active_cell_iterator cell =
+                                                     dof_handler.begin_active(),
+                                                 endc = dof_handler.end();
+  Vector<double> local_rhs(dofs_per_cell);
+  std::vector<double> old_sol_values(n_q_points);
+  std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
+
+  //----------------------------------------------------------------------//
+
+
+
   tmp.reinit(solution.size());           //initialize tmp
   forcing_terms.reinit(solution.size()); // initialize forcing_terms
 
   VectorTools::interpolate(dof_handler,
-                           ZeroFunction<dim>(),
+                           InitialValues<dim>(),
                            old_solution); // interpolate the old solution based on dof_handler, here using interpolation because we refine the global
   solution = old_solution;                // updating the solutin with sinterpolated old solution
 
@@ -299,7 +337,44 @@ void HeatEquation<dim>::run()
     std::cout << "Time step " << timestep_number << " at t=" << time
               << std::endl;
 
-    mass_matrix.vmult(system_rhs, old_solution); // matrix multiplication system_rhs = mass_matrix*old_solution
+    system_matrix = 0;
+    system_rhs = 0;
+
+    //---------------for old T--------------------------------------------------//
+    FEValues<dim> fe_values(fe, quadrature_formula,
+                            update_values | update_gradients |
+                                update_quadrature_points | update_JxW_values);
+
+    for (; cell != endc; ++cell) {
+      local_rhs = 0;
+      fe_values.reinit(cell);
+      fe_values.get_function_values(old_solution, old_sol_values);
+      for (unsigned int q = 0; q < n_q_points; ++q ){
+        for (unsigned int i = 0; i < dofs_per_cell; ++i) {
+          const double phi_i = fe_values.shape_value(i, q);
+          local_rhs(i) += old_sol_values[q] * phi_i * fe_values.JxW(q);
+        }
+        
+      }
+      cell->get_dof_indices(local_dof_indices);
+      for (unsigned int i = 0; i < dofs_per_cell; ++i) {
+        system_rhs(local_dof_indices[i]) += local_rhs(i);
+      }
+    }
+
+  //----------------------------------------------------------------------------//
+
+
+
+
+    // mass_matrix.vmult(system_rhs, old_solution); // matrix multiplication system_rhs = mass_matrix*old_solution
+
+    
+    MatrixOut matrix_out;
+    std::ofstream out ("rhs_matrix_at_"+std::to_string(time));
+    system_rhs.print(out);
+
+
 
     laplace_matrix.vmult(tmp, old_solution);       // tmp = laplace_matrix*old_solution
     system_rhs.add(-(1 - theta) * time_step, tmp); // system_rhs = system_rhs -(1 - theta) * time_step*tmp  注意，这里system_rhs是一个vector，所以add是将两个元素相乘了
@@ -326,7 +401,7 @@ void HeatEquation<dim>::run()
     system_matrix.copy_from(mass_matrix);
     system_matrix.add(theta * time_step, laplace_matrix); //sys = M + k*theta*A
 
-    constraints.condense(system_matrix, system_rhs); // 压缩
+    // constraints.condense(system_matrix, system_rhs); // 压缩
 
     {
       BoundaryValues<dim> boundary_values_function; // creat boundary value object
@@ -343,6 +418,13 @@ void HeatEquation<dim>::run()
                                          solution,
                                          system_rhs);
     }
+
+    // MatrixOut matrix_out;
+    // std::ofstream out ("2rhs_matrix_at_"+std::to_string(time));
+    // // matrix_out.build_patches (system_matrix, "system_matrix");
+    // // matrix_out.write_gnuplot (out);
+    // // system_matrix.print_formatted(out);
+    // system_rhs.print(out);
 
     solve_time_step();
 
